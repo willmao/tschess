@@ -1,4 +1,4 @@
-export class SVGLine {
+export default class SVGLine {
   x1: number;
   y1: number;
   x2: number;

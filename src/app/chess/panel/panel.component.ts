@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { UiService } from '../core/ui.service'
-import { ChessUIConf } from '../core/chess-uiconf'
-import { SVGLine } from '../core/svg-line'
-import { Chessman } from '../core/chessman'
-import { ChessGame } from '../core/chess-game'
-import { ChessColor } from '../core/chess-color.enum'
+import { UiService } from '../ui/ui.service'
+import ChessUIConf from '../ui/chess-uiconf'
+import SVGLine from '../ui/svg-line'
+import Chessman from '../game/chessman'
+import { ChessGame } from '../game/chess-game'
+import { ChessColor } from '../game/chess-color.enum'
 
 @Component({
   selector: 'app-panel',
@@ -19,27 +19,20 @@ export class PanelComponent implements OnInit {
   chessGame: ChessGame = new ChessGame();
   panelConf: any;
 
-  select(chessman: Chessman) {
-    for (let i = 0; i < this.chessmen.length; i++) {
-      if (this.chessmen[i].id !== chessman.id) {
-        this.chessmen[i].checked = false;
-      }
-    }
-
-    chessman.checked = !chessman.checked;
-  }
-
-  selectChessman(chessman: Chessman) {
-    if (chessman.color === ChessColor.Black) {
-      return;
-    }
-
-    this.select(chessman);
+  clickPanel(event) {
+    const originalPoint = this.uiService.getOriginalPoint(this.panelConf.zoomTimes, event.offsetX, event.offsetY);
+    this.uiService.isInsidePanel(originalPoint.x, originalPoint.y);
+    if (
+      !this.uiService.isInsidePanel(originalPoint.x, originalPoint.y) ||
+      !this.uiService.isValidPoint(originalPoint.x, originalPoint.y)
+    ) return;
+    const targetPoint = this.uiService.getValidPoint(originalPoint.x, originalPoint.y);
+    this.chessGame.clickPanel(targetPoint);
   }
 
   ngOnInit() {
     this.baseLines = this.uiService.getBaseLines();
-    this.chessmen = this.chessGame.getOriginalChessmen();
+    this.chessmen = this.chessGame.chessmen;
     this.panelConf = this.uiService.getChessPanelConf();
   }
 }

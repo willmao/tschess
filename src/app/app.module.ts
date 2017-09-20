@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { PanelComponent } from './chess/panel/panel.component';
-import { ChessInfoPipe } from './chess/core/chess-info.pipe';
+import { ChessInfoPipe } from './chess/ui/chess-info.pipe';
 
 @NgModule({
   declarations: [

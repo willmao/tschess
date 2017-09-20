@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable()
-export class ChessUIConf {
+export default class ChessUIConf {
     radius: number = 10;
     width: number = 30;
     reticle: number = 4;
