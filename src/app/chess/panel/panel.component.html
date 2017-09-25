@@ -2,8 +2,7 @@
   [attr.width]="panelConf.width"
   [attr.height]="panelConf.height"
   [attr.viewBox]="panelConf.viewBox"
-  (click)="clickPanel($event)"
-  style="border: 1px solid red;">
+  (click)="clickPanel($event)">
   <filter id="dropShadow">
     <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" />
     <feOffset dx="0.5" dy="0.5" />

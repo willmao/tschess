@@ -1,4 +1,5 @@
 import ArrayHelper from './array-helper'
+import SearchObject from './search-object'
 
 const boardMask = [
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -54,27 +55,24 @@ const horseDelta = ArrayHelper.unzip([
   [-0x21, -0x10],
   [-0x12, -0x01],
 ], 0x22, 0x44);
-
-const armsCount = [
-  // king
-  1,
-  // rook
-  2,
-  // horse
-  2,
-  // cannon
-  2,
-  // guard
-  2,
-  // elephant
-  2,
-  // pawn
-  5,
-]
-
 export default class ChessRule {
 
-  static moves: Array<number> = ArrayHelper.reset(new Array<number>(1 << 10));
+  static armsCount = [
+    // king
+    1,
+    // rook
+    2,
+    // horse
+    2,
+    // cannon
+    2,
+    // guard
+    2,
+    // elephant
+    2,
+    // pawn
+    5,
+  ];
 
   static isValidAddress = (address: number): boolean => {
     return boardMask[address] > 0;
@@ -141,10 +139,9 @@ export default class ChessRule {
     )
   ];
 
-  static findMovesRook = (game, color: number, offset: number, onlyKill: boolean) => {
-    let pieces = game.pieces;
-    let square = game.square;
-    let moves = ChessRule.moves;
+  static findMovesRook = (searchObj: SearchObject, color: number, moves: Array<number>, onlyKill: boolean) => {
+    let pieces = searchObj.pieces;
+    let square = searchObj.square;
     for (let no = 1; no <= 2; no++) {
       let man = (color << 7) | (1 << 4) | no;
       let src = pieces[man];
@@ -155,21 +152,18 @@ export default class ChessRule {
           let killedMan = square[dest];
           if (killedMan > 0 && (killedMan >> 7) === color) break;
           if (killedMan || !onlyKill) {
-            moves[offset++] = src | (dest << 8) | (man << 16) | (killedMan << 24);
+            moves.push(src | (dest << 8) | (man << 16) | (killedMan << 24));
           }
 
           if (killedMan > 0) break;
         }
       }
     }
-
-    return offset;
   }
 
-  static findMovesCannon = (game, color: number, offset: number, onlyKill: boolean) => {
-    let pieces = game.pieces;
-    let square = game.square;
-    let moves = ChessRule.moves;
+  static findMovesCannon = (searchObj: SearchObject, color: number, moves: Array<number>, onlyKill: boolean) => {
+    let pieces = searchObj.pieces;
+    let square = searchObj.square;
     for (let no = 1; no <= 2; no++) {
       let man = (color << 7) | (3 << 4) | no;
       let src = pieces[man];
@@ -182,28 +176,25 @@ export default class ChessRule {
           if (mark) {
             if (killedMan > 0) {
               if ((killedMan >> 7) !== color) {
-                moves[offset++] = src | (dest << 8) | (man << 16) | (killedMan << 24);
+                moves.push(src | (dest << 8) | (man << 16) | (killedMan << 24));
               }
               break;
             }
           } else if (killedMan > 0) {
             mark = true;
           } else if (!onlyKill) {
-            moves[offset++] = src | (dest << 8) | (man << 16);
+            moves.push(src | (dest << 8) | (man << 16));
           }
         }
       }
     }
-
-    return offset;
   }
 
-  static findMovesBase = (game, color: number, offset: number, onlyKill: boolean) => {
-    let pieces = game.pieces;
-    let square = game.square;
-    let moves = ChessRule.moves;
+  static findMovesBase = (searchObj: SearchObject, color: number, moves: Array<number>, onlyKill: boolean) => {
+    let pieces = searchObj.pieces;
+    let square = searchObj.square;
     for (let arm = 0; arm < 7; arm++) {
-      for (let no = 1; no <= armsCount[arm]; no++) {
+      for (let no = 1; no <= ChessRule.armsCount[arm]; no++) {
         let man = (color << 7) | (arm << 4) | no;
         let src = pieces[man];
         if (src === 0) continue;
@@ -221,19 +212,16 @@ export default class ChessRule {
           }
 
           if (killedMan || !onlyKill) {
-            moves[offset++] = m | (no << 16) | (killedMan << 24);
+            moves.push(m | (no << 16) | (killedMan << 24));
           }
         }
       }
     }
-
-    return offset;
   }
 
-  static findMovesKing = (game, color: number, offset: number, onlyKill: boolean) => {
-    let pieces = game.pieces;
-    let square = game.square;
-    let moves = ChessRule.moves;
+  static findMovesKing = (searchObj: SearchObject, color: number, moves: Array<number>, onlyKill: boolean) => {
+    let pieces = searchObj.pieces;
+    let square = searchObj.square;
     let king1 = (color << 7) | (0 << 4) | 1, king2 = ((1 - color) << 7) | (0 << 4) | 1;
     let pking1 = pieces[king1], pking2 = pieces[king2];
     if (pking1 === 0 || pking2 === 0) return;
@@ -248,27 +236,116 @@ export default class ChessRule {
       }
 
       if (!found) {
-        moves[offset++] = pking1 | (pking2 << 8) | (king1 << 16) | (king2 << 24);
+        moves.push(pking1 | (pking2 << 8) | (king1 << 16) | (king2 << 24));
       }
     }
-
-    return offset;
   }
 
-  static findAllMoves = (game, color: number, offset: number, onlyKill: boolean) => {
-    offset = ChessRule.findMovesRook(game, color, offset, onlyKill);
-    offset = ChessRule.findMovesCannon(game, color, offset, onlyKill);
-    offset = ChessRule.findMovesKing(game, color, offset, onlyKill);
-    offset = ChessRule.findMovesBase(game, color, offset, onlyKill);
-    return offset;
+  static findAllMoves = (searchObj: SearchObject, color: number, onlyKill: boolean) => {
+    const moves: Array<number> = new Array<number>();
+    ChessRule.findMovesRook(searchObj, color, moves, onlyKill);
+    ChessRule.findMovesCannon(searchObj, color, moves, onlyKill);
+    ChessRule.findMovesKing(searchObj, color, moves, onlyKill);
+    ChessRule.findMovesBase(searchObj, color, moves, onlyKill);
+    return moves;
   }
 
-  static isValidMove = (game, move) => {
+  static isValidMove = (searchObj: SearchObject, color: number, move) => {
     let chessman = (move & 0xff0000) >> 16;
-    let count = ChessRule.findAllMoves(game, chessman >> 7, 0, false);
-    for (let i = 0; i < count; i++) {
-      if (ChessRule.moves[i] === move) return true;
+    const moves = ChessRule.findAllMoves(searchObj, color, false);
+    for (let i = 0; i < moves.length; i++) {
+      if (moves[i] === move) return true;
     }
     return false;
+  }
+
+  static getDelta = (src: number, dest: number) => {
+    if ((src & 0x0f) == (dest & 0x0f)) {
+      if (src < dest) {
+        return 0x10;
+      } else if (src > dest) {
+        return -0x10;
+      } else {
+        return 0;
+      }
+    } else if ((src & 0xf0) == (dest & 0xf0)) {
+      if (src < dest) {
+        return 0x01;
+      } else if (src > dest) {
+        return -0x01;
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  }
+
+  // static isRookKill = (searchObj: SearchObject, src: number, dest: number) => {
+  //   if (src == 0) return false;
+  //   var delta = ChessRule.getDelta(src, dest);
+  //   if (delta == 0) return false;
+
+  //   for (var p = src + delta; p != dest; p += delta) {
+  //     if (searchObj.square[p]) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+
+  // static isKingKill = (searchObj: SearchObject, src: number, dest: number) => {
+  //   return ChessRule.isRookKill(searchObj, src, dest);
+  // }
+
+  // static isCannonKill = (searchObject: SearchObject, src: number, dest: number) => {
+  //   if (src == 0) return false;
+  //   const delta = ChessRule.getDelta(src, dest);
+  //   if (delta == 0) return false;
+  //   let count = 0;
+  //   for (var p = src + delta; p != dest; p += delta) {
+  //     if (searchObject.square[p] > 0) {
+  //       count++;
+  //       if (count > 1) return false;
+  //     }
+  //   }
+  //   return count == 1;
+  // }
+
+  // static isHorseKill = (searchObj: SearchObject, src: number, dest: number) => {
+  //   if (src == 0) return false;
+  //   const delta = dest - src;
+  //   if (delta < -0x22 || delta > 0x22) return false;
+  //   const legDelta = horseDelta[delta + 0x22];
+  //   if (legDelta == undefined) return false;
+  //   return searchObj.square[src + legDelta] == 0;
+  // }
+
+  // static isPawnKill = (src: number, dest: number) => {
+  //   if (src == 0) return false;
+  //   return src - 0x01 == dest || src + 0x10 == dest || src - 0x01 == dest || src - 0x10 == dest;
+  // }
+
+  // static isCheckKing = (searchObj: SearchObject, color:number) => {
+  //   const c = color << 7, oc = (1 - color) << 7;
+  //   const kingAddr = searchObj.pieces[c | 0x01];
+  //   if (kingAddr === 0) return true;
+
+  //   return ChessRule.isKingKill(searchObj, searchObj.pieces[oc | 0x01], kingAddr) ||
+  //     ChessRule.isRookKill(searchObj, searchObj.pieces[oc | 0x11], kingAddr) ||
+  //     ChessRule.isRookKill(searchObj, searchObj.pieces[oc | 0x12], kingAddr) ||
+  //     ChessRule.isHorseKill(searchObj, searchObj.pieces[oc | 0x21], kingAddr) ||
+  //     ChessRule.isHorseKill(searchObj, searchObj.pieces[oc | 0x22], kingAddr) ||
+  //     ChessRule.isCannonKill(searchObj, searchObj.pieces[oc | 0x31], kingAddr) ||
+  //     ChessRule.isCannonKill(searchObj, searchObj.pieces[oc | 0x32], kingAddr) ||
+  //     ChessRule.isPawnKill(searchObj.pieces[oc | 0x61], kingAddr) ||
+  //     ChessRule.isPawnKill(searchObj.pieces[oc | 0x62], kingAddr) ||
+  //     ChessRule.isPawnKill(searchObj.pieces[oc | 0x63], kingAddr) ||
+  //     ChessRule.isPawnKill(searchObj.pieces[oc | 0x64], kingAddr) ||
+  //     ChessRule.isPawnKill(searchObj.pieces[oc | 0x65], kingAddr);
+  // }
+
+  static isGameOver = (searchObj: SearchObject) => {
+    return searchObj.pieces[0x01] == 0 || searchObj.pieces[0x81] == 0;
   }
 }

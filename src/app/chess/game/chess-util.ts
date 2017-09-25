@@ -1,4 +1,5 @@
 import Chessman from './chessman'
+import Point from '../ui/point'
 
 export default class ChessUtil {
   static encode(chessman: Chessman): number {

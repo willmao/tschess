@@ -1,9 +1,12 @@
 import Chessman from './chessman'
-import ChessUtil from './chess-util';
+import ChessUtil from './chess-util'
 import Point from '../ui/point'
 import { ChessColor } from './chess-color.enum'
 import ChessRule from './chess-rule'
 import ArrayHelper from './array-helper'
+import SearchObject from './search-object'
+import SearchEngine from './search-engine'
+import ChessMove from './chess-move'
 
 const originalChessmen = [
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -37,41 +40,10 @@ export class ChessGame {
   gameStatus: GameStatus;
   chessmen: Chessman[];
   moves: Array<number> = ArrayHelper.reset(new Array<number>(1 << 10));
-  pieces: Array<number>; // 存放棋子-位置信息
-  square: Array<number>; // 存放位置-棋子信息
 
   constructor() {
     this.chessmen = this.getOriginalChessmen();
     this.gameStatus = GameStatus.Start;
-    this.updateInfo(this.chessmen);
-  }
-
-  private updateInfo(chessmen: Chessman[]) {
-    this.pieces = this.getPieces(this.chessmen);
-    this.square = this.getSquare(this.chessmen);
-  }
-
-  private getInfo(chessmen: Chessman[], assignFn: Function): Array<number> {
-    const array = ArrayHelper.reset(new Array<number>(1 << 8));
-    for (let i = 0; i < chessmen.length; i++) {
-      const chessman = chessmen[i];
-      const code = ChessUtil.encode(chessman);
-      const position = ChessUtil.encodePosition(chessman.x, chessman.y);
-      assignFn(array, code, position);
-    }
-    return array;
-  }
-
-  private getPieces(chessmen: Chessman[]) {
-    return this.getInfo(chessmen, (array: Array<number>, code: number, position: number) => {
-      array[code] = position;
-    });
-  }
-
-  private getSquare(chessmen: Chessman[]) {
-    return this.getInfo(chessmen, (array: Array<number>, code: number, position: number) => {
-      array[position] = code;
-    });
   }
 
   private getOriginalChessmen(): Chessman[] {
@@ -87,11 +59,11 @@ export class ChessGame {
     return chessmen;
   }
 
-  selectChessman(chessman: Chessman): void {
+  selectChessman(chessman: Chessman, isSelect = true): void {
     this.chessmen.forEach((item) => {
       item.checked = false;
     })
-    chessman.checked = true;
+    chessman.checked = isSelect;
   }
 
   moveChessman(chessman: Chessman, point: Point): void {
@@ -126,10 +98,22 @@ export class ChessGame {
     return this.chessmen.filter((chessman) => chessman.checked)[0];
   }
 
+  applyMove = (move) => {
+    const chessMove = new ChessMove(move)
+    // console.log(chessMove.toString());
+    const selectChessman = this.getChessmanByPoint(chessMove.from);
+    const killChessman = this.getChessmanByPoint(chessMove.to);
+    if (killChessman) {
+      this.killChessman(chessMove.to);
+    }
+    this.moveChessman(selectChessman, chessMove.to);
+    this.moves.push(move);
+  }
+
   clickPanel(point) {
-    const target:Point = {
+    const target: Point = {
       x: point.x + 3,
-      y: point.y +3
+      y: point.y + 3
     }
     const chessman = this.getChessmanByPoint(target);
     switch (this.gameStatus) {
@@ -152,15 +136,20 @@ export class ChessGame {
             ChessUtil.encode(selectedChessman),
             ChessUtil.encode(chessman)
           )
-          const isValidMove = ChessRule.isValidMove(this, move);
+          const searchObj = new SearchObject(this, 1);
+          const isValidMove = ChessRule.isValidMove(searchObj, 1, move);
           if (isValidMove) {
-            this.moveChessman(selectedChessman, target);
-            if (chessman !== null) {
-              this.killChessman(target);
-              console.log(this.chessmen);
-            }
+            this.applyMove(move);
           }
-          this.updateInfo(this.chessmen);
+          this.gameStatus = GameStatus.Thinking;
+          this.selectChessman(selectedChessman, false);
+          const bestMove = SearchEngine.findBestMove(this, 0);
+          console.log(bestMove);
+          setTimeout(() => {
+            this.applyMove(bestMove);
+            this.gameStatus = GameStatus.Start;
+            // console.log(11111);
+          }, 100);
         }
         break;
       case GameStatus.Thinking:
