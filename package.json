@@ -10,7 +10,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "deploy": "ng build --env=prod --base-href 'https://willmao.github.io/tschess/' && ngh",
-    "deploy:travis-cli": "ng build --env=prod --base-href 'https://willmao.github.io/tschess/' && --repo=https://${GITHUB_TOKEN}@github.com/willmao/tschess.git"
+    "deploy:travis-cli": "ng build --env=prod --base-href 'https://willmao.github.io/tschess/' && ngh --repo=https://${GITHUB_TOKEN}@github.com/willmao/tschess.git"
   },
   "private": true,
   "dependencies": {
