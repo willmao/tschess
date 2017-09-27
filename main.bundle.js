@@ -82,7 +82,7 @@ AppComponent = __decorate([
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__app_component__ = __webpack_require__("../../../../../src/app/app.component.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__chess_panel_panel_component__ = __webpack_require__("../../../../../src/app/chess/panel/panel.component.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__chess_ui_chess_info_pipe__ = __webpack_require__("../../../../../src/app/chess/ui/chess-info.pipe.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__chess_pipe_status_pipe__ = __webpack_require__("../../../../../src/app/chess/pipe/status.pipe.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -104,7 +104,7 @@ AppModule = __decorate([
         declarations: [
             __WEBPACK_IMPORTED_MODULE_2__app_component__["a" /* AppComponent */],
             __WEBPACK_IMPORTED_MODULE_3__chess_panel_panel_component__["a" /* PanelComponent */],
-            __WEBPACK_IMPORTED_MODULE_4__chess_ui_chess_info_pipe__["a" /* ChessInfoPipe */]
+            __WEBPACK_IMPORTED_MODULE_4__chess_pipe_status_pipe__["a" /* StatusPipe */]
         ],
         imports: [
             __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__["a" /* BrowserModule */]
@@ -184,16 +184,24 @@ var ChessColor;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* unused harmony export GameStatus */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ChessGame; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__chessman__ = __webpack_require__("../../../../../src/app/chess/game/chessman.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__chess_util__ = __webpack_require__("../../../../../src/app/chess/game/chess-util.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__chess_color_enum__ = __webpack_require__("../../../../../src/app/chess/game/chess-color.enum.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__chess_rule__ = __webpack_require__("../../../../../src/app/chess/game/chess-rule.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__array_helper__ = __webpack_require__("../../../../../src/app/chess/game/array-helper.ts");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return GameStatus; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__chessman__ = __webpack_require__("../../../../../src/app/chess/game/chessman.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__chess_util__ = __webpack_require__("../../../../../src/app/chess/game/chess-util.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__chess_color_enum__ = __webpack_require__("../../../../../src/app/chess/game/chess-color.enum.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__chess_rule__ = __webpack_require__("../../../../../src/app/chess/game/chess-rule.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__search_object__ = __webpack_require__("../../../../../src/app/chess/game/search-object.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__search_engine__ = __webpack_require__("../../../../../src/app/chess/game/search-engine.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__chess_move__ = __webpack_require__("../../../../../src/app/chess/game/chess-move.ts");
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 
 
 
@@ -225,19 +233,36 @@ var GameStatus;
     GameStatus[GameStatus["Start"] = 0] = "Start";
     GameStatus[GameStatus["Selected"] = 1] = "Selected";
     GameStatus[GameStatus["Thinking"] = 2] = "Thinking";
-    GameStatus[GameStatus["Done"] = 3] = "Done";
+    GameStatus[GameStatus["GameOver"] = 3] = "GameOver";
 })(GameStatus || (GameStatus = {}));
 var ChessGame = (function () {
     function ChessGame() {
         var _this = this;
-        this.moves = __WEBPACK_IMPORTED_MODULE_4__array_helper__["a" /* default */].reset(new Array(1 << 10));
+        this.init = function () {
+            _this.chessmen = _this.getOriginalChessmen();
+            _this.gameStatus = GameStatus.Start;
+            _this.moves = [];
+        };
+        this.revert = function () {
+            if (_this.gameStatus === GameStatus.Thinking || _this.moves.length < 2) {
+                return;
+            }
+            _this.revertMove(_this.moves.pop());
+            _this.revertMove(_this.moves.pop());
+            _this.unSelectAllChessman();
+        };
+        this.unSelectAllChessman = function () {
+            _this.chessmen.forEach(function (chessman) {
+                chessman.checked = false;
+            });
+        };
         this.getSelectedChessman = function () {
             return _this.chessmen.filter(function (chessman) { return chessman.checked; })[0];
         };
         this.applyMove = function (move) {
             var chessMove = new __WEBPACK_IMPORTED_MODULE_7__chess_move__["a" /* default */](move);
-            // console.log(chessMove.toString());
             var selectChessman = _this.getChessmanByPoint(chessMove.from);
+            _this.selectChessman(selectChessman);
             var killChessman = _this.getChessmanByPoint(chessMove.to);
             if (killChessman) {
                 _this.killChessman(chessMove.to);
@@ -245,8 +270,21 @@ var ChessGame = (function () {
             _this.moveChessman(selectChessman, chessMove.to);
             _this.moves.push(move);
         };
-        this.chessmen = this.getOriginalChessmen();
-        this.gameStatus = GameStatus.Start;
+        this.revertMove = function (move) {
+            var chessMove = new __WEBPACK_IMPORTED_MODULE_7__chess_move__["a" /* default */](move);
+            var selectChessman = _this.getChessmanByPoint(chessMove.to);
+            selectChessman.x = chessMove.from.x;
+            selectChessman.y = chessMove.from.y;
+            var killChessman = chessMove.killedMan;
+            if (killChessman) {
+                _this.chessmen.push(killChessman);
+            }
+        };
+        this.isValidMove = function (move, color) {
+            var searchObj = new __WEBPACK_IMPORTED_MODULE_5__search_object__["a" /* default */](_this, color);
+            return __WEBPACK_IMPORTED_MODULE_4__chess_rule__["a" /* default */].isValidMove(searchObj, color, move);
+        };
+        this.init();
     }
     ChessGame.prototype.getOriginalChessmen = function () {
         var chessmen = [];
@@ -255,8 +293,8 @@ var ChessGame = (function () {
             if (item === 0) {
                 continue;
             }
-            var _a = __WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].decode(item), color = _a[0], arm = _a[1], no = _a[2];
-            chessmen.push(new __WEBPACK_IMPORTED_MODULE_0__chessman__["a" /* default */](color, arm, no, (i % 16), (i >> 4)));
+            var _a = __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].decode(item), color = _a[0], arm = _a[1], no = _a[2];
+            chessmen.push(new __WEBPACK_IMPORTED_MODULE_1__chessman__["a" /* default */](color, arm, no, (i % 16), (i >> 4)));
         }
         return chessmen;
     };
@@ -300,22 +338,22 @@ var ChessGame = (function () {
         var chessman = this.getChessmanByPoint(target);
         switch (this.gameStatus) {
             case GameStatus.Start:
-                if (chessman !== null && chessman.color === __WEBPACK_IMPORTED_MODULE_2__chess_color_enum__["a" /* ChessColor */].Red) {
+                if (chessman !== null && chessman.color === __WEBPACK_IMPORTED_MODULE_3__chess_color_enum__["a" /* ChessColor */].Red) {
                     this.selectChessman(chessman);
                     this.gameStatus = GameStatus.Selected;
                 }
                 break;
             case GameStatus.Selected:
                 // 选择其他棋子
-                if (chessman != null && chessman.color === __WEBPACK_IMPORTED_MODULE_2__chess_color_enum__["a" /* ChessColor */].Red) {
+                if (chessman != null && chessman.color === __WEBPACK_IMPORTED_MODULE_3__chess_color_enum__["a" /* ChessColor */].Red) {
                     this.selectChessman(chessman);
                 }
                 else {
                     // 移动棋子，判断走法是否合法，是否吃子
                     var selectedChessman = this.getSelectedChessman();
-                    var move = __WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].encodeMove(__WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].encodePosition(selectedChessman.x, selectedChessman.y), __WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].encodePosition(target.x, target.y), __WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].encode(selectedChessman), __WEBPACK_IMPORTED_MODULE_1__chess_util__["a" /* default */].encode(chessman));
+                    var move = __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodeMove(__WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodePosition(selectedChessman.x, selectedChessman.y), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodePosition(target.x, target.y), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encode(selectedChessman), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encode(chessman));
                     var searchObj = new __WEBPACK_IMPORTED_MODULE_5__search_object__["a" /* default */](this, 1);
-                    var isValidMove = __WEBPACK_IMPORTED_MODULE_3__chess_rule__["a" /* default */].isValidMove(searchObj, 1, move);
+                    var isValidMove = __WEBPACK_IMPORTED_MODULE_4__chess_rule__["a" /* default */].isValidMove(searchObj, 1, move);
                     if (isValidMove) {
                         this.applyMove(move);
                     }
@@ -336,7 +374,20 @@ var ChessGame = (function () {
     };
     return ChessGame;
 }());
-
+ChessGame.getGamePoint = function (point) {
+    return {
+        x: point.x + 3,
+        y: point.y + 3
+    };
+};
+ChessGame.encodeMove = function (selectedChessman, target, killChessman) {
+    return __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodeMove(__WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodePosition(selectedChessman.x, selectedChessman.y), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encodePosition(target.x, target.y), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encode(selectedChessman), __WEBPACK_IMPORTED_MODULE_2__chess_util__["a" /* default */].encode(killChessman));
+};
+ChessGame = __decorate([
+    Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])(),
+    __metadata("design:paramtypes", [])
+], ChessGame);
+/* harmony default export */ __webpack_exports__["b"] = (ChessGame);
 //# sourceMappingURL=chess-game.js.map
 
 /***/ }),
@@ -843,46 +894,53 @@ GameEvaluator.evaluate = function (searchObject, color) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__search_object__ = __webpack_require__("../../../../../src/app/chess/game/search-object.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__chess_rule__ = __webpack_require__("../../../../../src/app/chess/game/chess-rule.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__game_evaluator__ = __webpack_require__("../../../../../src/app/chess/game/game-evaluator.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__chess_move__ = __webpack_require__("../../../../../src/app/chess/game/chess-move.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__search_object__ = __webpack_require__("../../../../../src/app/chess/game/search-object.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__chess_rule__ = __webpack_require__("../../../../../src/app/chess/game/chess-rule.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__game_evaluator__ = __webpack_require__("../../../../../src/app/chess/game/game-evaluator.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__chess_move__ = __webpack_require__("../../../../../src/app/chess/game/chess-move.ts");
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 
 
 
 
-var SearchEngine = (function () {
+
+var SearchEngine = SearchEngine_1 = (function () {
     function SearchEngine() {
     }
     return SearchEngine;
 }());
-/* harmony default export */ __webpack_exports__["a"] = (SearchEngine);
 SearchEngine.maxDepth = 5;
 SearchEngine.createSearchObject = function (game, color) {
-    return new __WEBPACK_IMPORTED_MODULE_0__search_object__["a" /* default */](game, color);
+    return new __WEBPACK_IMPORTED_MODULE_1__search_object__["a" /* default */](game, color);
 };
 SearchEngine.findBestMove = function (game, color) {
-    var searchObj = SearchEngine.createSearchObject(game, color);
-    var alpha = SearchEngine.alphaBeta(searchObj, color, -1 * __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].INFINITY, __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].INFINITY, SearchEngine.maxDepth);
+    var searchObj = SearchEngine_1.createSearchObject(game, color);
+    var alpha = SearchEngine_1.alphaBeta(searchObj, color, -1 * __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].INFINITY, __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].INFINITY, SearchEngine_1.maxDepth);
     return searchObj.bestMove;
 };
 SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
     var bestMove = 0;
     // 如果深度为0，返回局面评分
-    if (depth === 0 || __WEBPACK_IMPORTED_MODULE_1__chess_rule__["a" /* default */].isGameOver(searchObj)) {
-        return __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].evaluate(searchObj, color);
+    if (depth === 0 || __WEBPACK_IMPORTED_MODULE_2__chess_rule__["a" /* default */].isGameOver(searchObj)) {
+        return __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].evaluate(searchObj, color);
     }
     // 生成全部走法
-    var moves = __WEBPACK_IMPORTED_MODULE_1__chess_rule__["a" /* default */].findAllMoves(searchObj, color, false);
+    var moves = __WEBPACK_IMPORTED_MODULE_2__chess_rule__["a" /* default */].findAllMoves(searchObj, color, false);
     for (var i = 0; i < moves.length; i++) {
         var move = moves[i];
         var killedMan = (move >>> 24);
         // 可以直接吃掉对方将
-        if (killedMan && ((killedMan & 0x70) >> 4) === 0 && depth === SearchEngine.maxDepth) {
+        if (killedMan && ((killedMan & 0x70) >> 4) === 0 && depth === SearchEngine_1.maxDepth) {
             searchObj.bestMove = move;
-            return __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].INFINITY + 1;
+            return __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].INFINITY + 1;
         }
-        SearchEngine.applyMove(searchObj, color, move);
+        SearchEngine_1.applyMove(searchObj, color, move);
         var currentScore = searchObj.currentScore;
         // if (depth === SearchEngine.maxDepth) {
         //   console.log(move, chessMove.toString());
@@ -891,18 +949,18 @@ SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
         // 判断是否被将军
         // 反转搜索颜色
         // 搜索对方最优走法
-        var value = -1 * SearchEngine.alphaBeta(searchObj, 1 - color, -beta, -alpha, depth - 1);
-        SearchEngine.revertMove(searchObj, color, move);
+        var value = -1 * SearchEngine_1.alphaBeta(searchObj, 1 - color, -beta, -alpha, depth - 1);
+        SearchEngine_1.revertMove(searchObj, color, move);
         if (value >= beta) {
-            if (SearchEngine.maxDepth != depth) {
+            if (SearchEngine_1.maxDepth != depth) {
                 return beta;
             }
         }
         if (value > alpha) {
             alpha = value;
             bestMove = move;
-            if (depth === SearchEngine.maxDepth) {
-                console.log("\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_3__chess_move__["a" /* default */](bestMove).toString() + ",\u5C42\u6570:" + depth + ",\u8D70\u5B8C\u8BC4\u5206:" + currentScore + ",\u5BF9\u65B9\u6700\u4F18\u8BC4\u5206:" + value + ",\u5BF9\u65B9\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_3__chess_move__["a" /* default */](searchObj.bestMove).toString());
+            if (depth === SearchEngine_1.maxDepth) {
+                console.log("\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_4__chess_move__["a" /* default */](bestMove).toString() + ",\u5C42\u6570:" + depth + ",\u8D70\u5B8C\u8BC4\u5206:" + currentScore + ",\u5BF9\u65B9\u6700\u4F18\u8BC4\u5206:" + value + ",\u5BF9\u65B9\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_4__chess_move__["a" /* default */](searchObj.bestMove).toString());
             }
         }
     }
@@ -920,10 +978,10 @@ SearchEngine.applyMove = function (searchObject, color, move) {
         var arm = (killedMan & 0x70) >> 4;
         // set score
         if (c === color) {
-            searchObject.currentScore -= __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].armsStaticScore[arm];
+            searchObject.currentScore -= __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].armsStaticScore[arm];
         }
         else {
-            searchObject.currentScore += __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].armsStaticScore[arm];
+            searchObject.currentScore += __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].armsStaticScore[arm];
         }
     }
     // 设置棋子新位置
@@ -942,10 +1000,10 @@ SearchEngine.revertMove = function (searchObject, color, move) {
         var arm = (killedMan & 0x70) >> 4;
         // set score
         if (c === color) {
-            searchObject.currentScore += __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].armsStaticScore[arm];
+            searchObject.currentScore += __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].armsStaticScore[arm];
         }
         else {
-            searchObject.currentScore -= __WEBPACK_IMPORTED_MODULE_2__game_evaluator__["a" /* default */].armsStaticScore[arm];
+            searchObject.currentScore -= __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].armsStaticScore[arm];
         }
     }
     searchObject.square[from] = chessman;
@@ -955,6 +1013,11 @@ SearchEngine.revertMove = function (searchObject, color, move) {
         searchObject.pieces[killedMan] = dest;
     }
 };
+SearchEngine = SearchEngine_1 = __decorate([
+    Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])()
+], SearchEngine);
+/* harmony default export */ __webpack_exports__["a"] = (SearchEngine);
+var SearchEngine_1;
 //# sourceMappingURL=search-engine.js.map
 
 /***/ }),
@@ -1013,7 +1076,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".base-line {\n  stroke: #8d4919;\n  stroke-width: 1px;\n}\n\n.chessman {\n  cursor: pointer;\n  background-color: transparent;\n}\n\n.chessman > circle {\n  fill: #e7c292;\n}\n\n.chessman.unselectabled {\n  -moz-user-select: -moz-none;\n  -webkit-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.chessman text {\n  font-size: 12px;\n  stroke-width: 1px;\n  font-family: cursive;\n}\n\n.chessman.black text {\n  fill: black;\n}\n\n.chessman.red text {\n  fill: red;\n}\n\n.chessman circle.checked {\n  stroke-width: 1px;\n}\n\n.chessman.black circle.checked {\n  stroke: black;\n}\n\n.chessman.red circle.checked {\n  stroke: red;\n  stroke-width: 1px;\n}\n", ""]);
+exports.push([module.i, ".base-line {\n  stroke: #8d4919;\n  stroke-width: 1px;\n}\n\n.chessman {\n  cursor: pointer;\n  background-color: transparent;\n}\n\n.chessman > circle {\n  fill: #e7c292;\n}\n\n.chessman.unselectabled {\n  -moz-user-select: -moz-none;\n  -webkit-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.chessman text {\n  font-size: 12px;\n  stroke-width: 1px;\n  font-family: cursive;\n}\n\n.chessman.black text {\n  fill: black;\n}\n\n.chessman.red text {\n  fill: red;\n}\n\n.chessman circle.checked {\n  stroke-width: 1px;\n}\n\n.chessman.black circle.checked {\n  stroke: black;\n}\n\n.chessman.red circle.checked {\n  stroke: red;\n  stroke-width: 1px;\n}\n\n.game-info-wrapper {\n  padding-left: 50px;\n}\n\n.time-left {\n  padding-left: 10px;\n}\n\n.operation-wrapper {\n  margin-top: 10px;\n}\n\n.operation-wrapper > .btn {\n  border:none;\n  color: white;\n  background-color: #37c3aa;\n  padding: 5px 10px;\n  border-radius: 3px;\n  cursor: pointer;\n  opacity: 0.8;\n  outline: none;\n}\n\n.operation-wrapper > .btn:hover {\n  opacity: 1;\n}\n", ""]);
 
 // exports
 
@@ -1026,7 +1089,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/chess/panel/panel.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\"\n  [attr.width]=\"panelConf.width\"\n  [attr.height]=\"panelConf.height\"\n  [attr.viewBox]=\"panelConf.viewBox\"\n  (click)=\"clickPanel($event)\">\n  <filter id=\"dropShadow\">\n    <feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"0.6\" />\n    <feOffset dx=\"0.5\" dy=\"0.5\" />\n    <feMerge>\n      <feMergeNode />\n      <feMergeNode in=\"SourceGraphic\" />\n    </feMerge>\n  </filter>\n  <g class=\"panel-base\">\n    <line class=\"base-line\" [attr.x1]=\"line.x1\" [attr.y1]=\"line.y1\" [attr.x2]=\"line.x2\" [attr.y2]=\"line.y2\" *ngFor=\"let line of baseLines\"></line>\n  </g>\n  <svg class=\"chessman unselectabled\" [class.red]=\"chessman.color===1\" [class.black]=\"chessman.color===0\"\n    *ngFor=\"let chessman of chessmen\">\n    <circle filter=\"url(#dropShadow)\" [class.checked]=\"chessman.checked\" [attr.cx]=\"chessman.px\" [attr.cy]=\"chessman.py\" [attr.r]=\"uiConf.radius\"></circle>\n    <text [attr.x]=\"chessman.px\" [attr.y]=\"chessman.py\" dx=\"-6\" dy=\"4\">{{chessman.name}}</text>\n  </svg>\n</svg>"
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\" [attr.width]=\"panelConf.width\"\n  [attr.height]=\"panelConf.height\" [attr.viewBox]=\"panelConf.viewBox\" (click)=\"clickPanel($event)\">\n  <filter id=\"dropShadow\">\n    <feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"0.6\" />\n    <feOffset dx=\"0.5\" dy=\"0.5\" />\n    <feMerge>\n      <feMergeNode />\n      <feMergeNode in=\"SourceGraphic\" />\n    </feMerge>\n  </filter>\n  <g class=\"panel-base\">\n    <line class=\"base-line\" [attr.x1]=\"line.x1\" [attr.y1]=\"line.y1\" [attr.x2]=\"line.x2\" [attr.y2]=\"line.y2\" *ngFor=\"let line of baseLines\"></line>\n  </g>\n  <svg class=\"chessman unselectabled\" [class.red]=\"chessman.color===1\" [class.black]=\"chessman.color===0\" *ngFor=\"let chessman of chessmen\">\n    <circle filter=\"url(#dropShadow)\" [class.checked]=\"chessman.checked\" [attr.cx]=\"chessman.px\" [attr.cy]=\"chessman.py\" [attr.r]=\"uiConf.radius\"></circle>\n    <text [attr.x]=\"chessman.px\" [attr.y]=\"chessman.py\" dx=\"-6\" dy=\"4\">{{chessman.name}}</text>\n  </svg>\n</svg>\n<section class=\"game-info-wrapper\">\n  <div class=\"status-wrapper\">\n    <span>当前状态：{{chessGame.gameStatus | status}}</span>\n    <span class=\"time-left\" *ngIf=\"showTimeLeft\">剩余思考时间：{{timeLeft}}</span>\n  </div>\n  <div class=\"operation-wrapper\">\n    <button class=\"btn reset\" (click)=\"resetGame()\">重新开始</button>\n    <button class=\"btn revert\" (click)=\"revert()\">悔棋</button>\n  </div>\n</section>"
 
 /***/ }),
 
@@ -1036,9 +1099,11 @@ module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" shap
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return PanelComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ui_ui_service__ = __webpack_require__("../../../../../src/app/chess/ui/ui.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_ui_service__ = __webpack_require__("../../../../../src/app/chess/services/ui.service.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ui_chess_uiconf__ = __webpack_require__("../../../../../src/app/chess/ui/chess-uiconf.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__game_chess_game__ = __webpack_require__("../../../../../src/app/chess/game/chess-game.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__game_chess_color_enum__ = __webpack_require__("../../../../../src/app/chess/game/chess-color.enum.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__game_search_engine__ = __webpack_require__("../../../../../src/app/chess/game/search-engine.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1052,24 +1117,90 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
+
+
+
 var PanelComponent = (function () {
-    function PanelComponent(uiService, uiConf) {
+    function PanelComponent(uiService, chessGame) {
+        var _this = this;
         this.uiService = uiService;
-        this.uiConf = uiConf;
-        this.chessGame = new __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* ChessGame */]();
+        this.findBestMove = function (chessGame) {
+            setTimeout(function () {
+                var bestMove = __WEBPACK_IMPORTED_MODULE_5__game_search_engine__["a" /* default */].findBestMove(chessGame, 0);
+                if (bestMove) {
+                    chessGame.applyMove(bestMove);
+                    chessGame.gameStatus = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Start;
+                    _this.showTimeLeft = false;
+                }
+            }, 5);
+        };
+        this.resetGame = function () {
+            _this.chessGame.init();
+        };
+        this.revert = function () {
+            _this.chessGame.revert();
+        };
+        this.uiConf = uiService.getUiConf();
+        this.chessGame = chessGame;
+        this.thinking = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["w" /* EventEmitter */](false);
+        this.thinking.subscribe(this.findBestMove);
+        this.thinkDuration = 10;
+        this.showTimeLeft = false;
     }
     PanelComponent.prototype.clickPanel = function (event) {
+        var _this = this;
         var originalPoint = this.uiService.getOriginalPoint(this.panelConf.zoomTimes, event.offsetX, event.offsetY);
         this.uiService.isInsidePanel(originalPoint.x, originalPoint.y);
         if (!this.uiService.isInsidePanel(originalPoint.x, originalPoint.y) ||
             !this.uiService.isValidPoint(originalPoint.x, originalPoint.y))
             return;
-        var targetPoint = this.uiService.getValidPoint(originalPoint.x, originalPoint.y);
-        this.chessGame.clickPanel(targetPoint);
+        var panelPoint = this.uiService.getValidPoint(originalPoint.x, originalPoint.y);
+        // this.chessGame.clickPanel(panelPoint);
+        var gamePoint = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["b" /* default */].getGamePoint(panelPoint);
+        var chessman = this.chessGame.getChessmanByPoint(gamePoint);
+        switch (this.chessGame.gameStatus) {
+            case __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Start:
+                if (chessman !== null && chessman.color === __WEBPACK_IMPORTED_MODULE_4__game_chess_color_enum__["a" /* ChessColor */].Red) {
+                    this.chessGame.selectChessman(chessman);
+                    this.chessGame.gameStatus = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Selected;
+                }
+                break;
+            case __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Selected:
+                // 切换棋子
+                if (chessman != null && chessman.color === __WEBPACK_IMPORTED_MODULE_4__game_chess_color_enum__["a" /* ChessColor */].Red) {
+                    this.chessGame.selectChessman(chessman);
+                }
+                else {
+                    // 走棋
+                    var selectChessman = this.chessGame.getSelectedChessman();
+                    var move = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["b" /* default */].encodeMove(selectChessman, gamePoint, chessman);
+                    if (this.chessGame.isValidMove(move, 1)) {
+                        this.chessGame.applyMove(move);
+                        this.thinking.emit(this.chessGame);
+                        this.chessGame.gameStatus = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Thinking;
+                        this.showTimeLeft = true;
+                        this.timeLeft = this.thinkDuration;
+                        this.thinkTimer = setInterval(function () {
+                            if (!_this.timeLeft) {
+                                _this.showTimeLeft = false;
+                                return clearInterval(_this.thinkTimer);
+                            }
+                            _this.timeLeft--;
+                        }, 3000);
+                    }
+                }
+                break;
+        }
     };
+    Object.defineProperty(PanelComponent.prototype, "chessmen", {
+        get: function () {
+            return this.chessGame.chessmen;
+        },
+        enumerable: true,
+        configurable: true
+    });
     PanelComponent.prototype.ngOnInit = function () {
         this.baseLines = this.uiService.getBaseLines();
-        this.chessmen = this.chessGame.chessmen;
         this.panelConf = this.uiService.getChessPanelConf();
     };
     return PanelComponent;
@@ -1079,9 +1210,9 @@ PanelComponent = __decorate([
         selector: 'app-panel',
         template: __webpack_require__("../../../../../src/app/chess/panel/panel.component.html"),
         styles: [__webpack_require__("../../../../../src/app/chess/panel/panel.component.css")],
-        providers: [__WEBPACK_IMPORTED_MODULE_1__ui_ui_service__["a" /* UiService */], __WEBPACK_IMPORTED_MODULE_2__ui_chess_uiconf__["a" /* default */]]
+        providers: [__WEBPACK_IMPORTED_MODULE_1__services_ui_service__["a" /* UiService */], __WEBPACK_IMPORTED_MODULE_2__ui_chess_uiconf__["a" /* default */], __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["b" /* default */], __WEBPACK_IMPORTED_MODULE_5__game_search_engine__["a" /* default */]]
     }),
-    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__ui_ui_service__["a" /* UiService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__ui_ui_service__["a" /* UiService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__ui_chess_uiconf__["a" /* default */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ui_chess_uiconf__["a" /* default */]) === "function" && _b || Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__services_ui_service__["a" /* UiService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__services_ui_service__["a" /* UiService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["b" /* default */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["b" /* default */]) === "function" && _b || Object])
 ], PanelComponent);
 
 var _a, _b;
@@ -1089,12 +1220,13 @@ var _a, _b;
 
 /***/ }),
 
-/***/ "../../../../../src/app/chess/ui/chess-info.pipe.ts":
+/***/ "../../../../../src/app/chess/pipe/status.pipe.ts":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ChessInfoPipe; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return StatusPipe; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__game_chess_game__ = __webpack_require__("../../../../../src/app/chess/game/chess-game.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1102,66 +1234,45 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 
-var ChessInfoPipe = (function () {
-    function ChessInfoPipe() {
+
+var StatusPipe = (function () {
+    function StatusPipe() {
     }
-    ChessInfoPipe.prototype.transform = function (chessmen, conf) {
-        // chessmen.forEach((chessman: Chessman) => {
-        //   chessman.px = chessman.x * conf.width + conf.marginX;
-        //   chessman.py = chessman.y * conf.width + conf.marginY;
-        // });
-        return [].concat(chessmen);
+    StatusPipe.prototype.transform = function (status, args) {
+        var statusInfo = '';
+        switch (status) {
+            case __WEBPACK_IMPORTED_MODULE_1__game_chess_game__["a" /* GameStatus */].Start:
+            case __WEBPACK_IMPORTED_MODULE_1__game_chess_game__["a" /* GameStatus */].Selected:
+                statusInfo = '玩家走棋';
+                break;
+            case __WEBPACK_IMPORTED_MODULE_1__game_chess_game__["a" /* GameStatus */].Thinking:
+                statusInfo = '电脑思考中...';
+                break;
+            case __WEBPACK_IMPORTED_MODULE_1__game_chess_game__["a" /* GameStatus */].GameOver:
+                statusInfo = '游戏结束';
+                break;
+        }
+        return statusInfo;
     };
-    return ChessInfoPipe;
+    return StatusPipe;
 }());
-ChessInfoPipe = __decorate([
+StatusPipe = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["V" /* Pipe */])({
-        name: 'chessInfo'
+        name: 'status'
     })
-], ChessInfoPipe);
+], StatusPipe);
 
-//# sourceMappingURL=chess-info.pipe.js.map
-
-/***/ }),
-
-/***/ "../../../../../src/app/chess/ui/chess-uiconf.ts":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-
-var ChessUIConf = (function () {
-    function ChessUIConf() {
-        this.radius = 10;
-        this.width = 30;
-        this.reticle = 4;
-        this.reticleMargin = 2;
-        this.marginX = 30;
-        this.marginY = 30;
-    }
-    return ChessUIConf;
-}());
-ChessUIConf = __decorate([
-    Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])()
-], ChessUIConf);
-/* harmony default export */ __webpack_exports__["a"] = (ChessUIConf);
-//# sourceMappingURL=chess-uiconf.js.map
+//# sourceMappingURL=status.pipe.js.map
 
 /***/ }),
 
-/***/ "../../../../../src/app/chess/ui/ui.service.ts":
+/***/ "../../../../../src/app/chess/services/ui.service.ts":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return UiService; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__chess_uiconf__ = __webpack_require__("../../../../../src/app/chess/ui/chess-uiconf.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ui_chess_uiconf__ = __webpack_require__("../../../../../src/app/chess/ui/chess-uiconf.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1175,6 +1286,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 var UiService = (function () {
     function UiService(conf) {
+        var _this = this;
         this.conf = conf;
         this.horizontalLineNumber = 10;
         this.verticalLineNumber = 9;
@@ -1200,6 +1312,10 @@ var UiService = (function () {
             [3, 7, 5, 9],
             [5, 7, 3, 9]
         ];
+        this.getUiConf = function () {
+            return _this.conf;
+        };
+        this.conf = conf;
     }
     UiService.prototype.getBaseLines = function () {
         var _this = this;
@@ -1346,11 +1462,42 @@ var UiService = (function () {
 }());
 UiService = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])(),
-    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__chess_uiconf__["a" /* default */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__chess_uiconf__["a" /* default */]) === "function" && _a || Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__ui_chess_uiconf__["a" /* default */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__ui_chess_uiconf__["a" /* default */]) === "function" && _a || Object])
 ], UiService);
 
 var _a;
 //# sourceMappingURL=ui.service.js.map
+
+/***/ }),
+
+/***/ "../../../../../src/app/chess/ui/chess-uiconf.ts":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+
+var ChessUIConf = (function () {
+    function ChessUIConf() {
+        this.radius = 10;
+        this.width = 30;
+        this.reticle = 4;
+        this.reticleMargin = 2;
+        this.marginX = 30;
+        this.marginY = 30;
+    }
+    return ChessUIConf;
+}());
+ChessUIConf = __decorate([
+    Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])()
+], ChessUIConf);
+/* harmony default export */ __webpack_exports__["a"] = (ChessUIConf);
+//# sourceMappingURL=chess-uiconf.js.map
 
 /***/ }),
 
