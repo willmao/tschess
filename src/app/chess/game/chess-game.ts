@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import Chessman from './chessman'
 import ChessUtil from './chess-util'
 import Point from '../ui/point'
@@ -32,18 +33,40 @@ export enum GameStatus {
   Start,
   Selected,
   Thinking,
-  Done
+  GameOver
 }
 
-export class ChessGame {
+@Injectable()
+export default class ChessGame {
 
   gameStatus: GameStatus;
   chessmen: Chessman[];
-  moves: Array<number> = ArrayHelper.reset(new Array<number>(1 << 10));
+  moves: Array<number>;
 
   constructor() {
+    this.init();
+  }
+
+  init = () => {
     this.chessmen = this.getOriginalChessmen();
     this.gameStatus = GameStatus.Start;
+    this.moves = [];
+  }
+
+  revert = () => {
+    if (this.gameStatus === GameStatus.Thinking || this.moves.length < 2) {
+      return;
+    }
+
+    this.revertMove(this.moves.pop());
+    this.revertMove(this.moves.pop());
+    this.unSelectAllChessman();
+  }
+
+  unSelectAllChessman = () => {
+    this.chessmen.forEach((chessman) => {
+      chessman.checked = false;
+    })
   }
 
   private getOriginalChessmen(): Chessman[] {
@@ -100,14 +123,46 @@ export class ChessGame {
 
   applyMove = (move) => {
     const chessMove = new ChessMove(move)
-    // console.log(chessMove.toString());
     const selectChessman = this.getChessmanByPoint(chessMove.from);
+    this.selectChessman(selectChessman);
     const killChessman = this.getChessmanByPoint(chessMove.to);
     if (killChessman) {
       this.killChessman(chessMove.to);
     }
     this.moveChessman(selectChessman, chessMove.to);
     this.moves.push(move);
+  }
+
+  revertMove = (move) => {
+    const chessMove = new ChessMove(move);
+    const selectChessman = this.getChessmanByPoint(chessMove.to);
+    selectChessman.x = chessMove.from.x;
+    selectChessman.y = chessMove.from.y;
+    const killChessman = chessMove.killedMan;
+    if (killChessman) {
+      this.chessmen.push(killChessman);
+    }
+  }
+
+  static getGamePoint = (point: Point): Point => {
+    return {
+      x: point.x + 3,
+      y: point.y + 3
+    }
+  }
+
+  static encodeMove = (selectedChessman: Chessman, target: Point, killChessman: Chessman) => {
+    return ChessUtil.encodeMove(
+      ChessUtil.encodePosition(selectedChessman.x, selectedChessman.y),
+      ChessUtil.encodePosition(target.x, target.y),
+      ChessUtil.encode(selectedChessman),
+      ChessUtil.encode(killChessman)
+    )
+  }
+
+  isValidMove = (move: number, color: number) => {
+    const searchObj = new SearchObject(this, color);
+    return ChessRule.isValidMove(searchObj, color, move);
   }
 
   clickPanel(point) {

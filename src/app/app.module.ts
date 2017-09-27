@@ -3,13 +3,13 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { PanelComponent } from './chess/panel/panel.component';
-import { ChessInfoPipe } from './chess/ui/chess-info.pipe';
+import { StatusPipe } from './chess/pipe/status.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     PanelComponent,
-    ChessInfoPipe
+    StatusPipe
   ],
   imports: [
     BrowserModule

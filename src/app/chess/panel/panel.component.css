@@ -46,3 +46,30 @@
   stroke: red;
   stroke-width: 1px;
 }
+
+.game-info-wrapper {
+  padding-left: 50px;
+}
+
+.time-left {
+  padding-left: 10px;
+}
+
+.operation-wrapper {
+  margin-top: 10px;
+}
+
+.operation-wrapper > .btn {
+  border:none;
+  color: white;
+  background-color: #37c3aa;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.8;
+  outline: none;
+}
+
+.operation-wrapper > .btn:hover {
+  opacity: 1;
+}

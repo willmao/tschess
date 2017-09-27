@@ -1,9 +1,11 @@
+import { Injectable } from '@angular/core';
 import SearchObject from './search-object'
-import { ChessGame } from './chess-game'
+import ChessGame from './chess-game'
 import ChessRule from './chess-rule'
 import GameEvaluator from './game-evaluator'
 import ChessMove from './chess-move'
 
+@Injectable()
 export default class SearchEngine {
 
   static maxDepth = 5;

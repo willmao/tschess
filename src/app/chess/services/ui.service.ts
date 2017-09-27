@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import ChessUIConf from './chess-uiconf'
-import SVGLine from './svg-line'
-import Point from './point'
+import ChessUIConf from '../ui/chess-uiconf'
+import SVGLine from '../ui/svg-line'
+import Point from '../ui/point'
 
 @Injectable()
 export class UiService {
-    constructor(private conf: ChessUIConf) { }
+    constructor(private conf: ChessUIConf) {
+        this.conf = conf;
+     }
     private horizontalLineNumber: number = 10;
     private verticalLineNumber: number = 9;
     private reticlePoints = [
@@ -31,6 +33,10 @@ export class UiService {
         [3, 7, 5, 9],
         [5, 7, 3, 9]
     ];
+
+    getUiConf = () => {
+        return this.conf;
+    }
 
     getBaseLines(): SVGLine[] {
         let conf = this.conf;

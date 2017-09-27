@@ -1,4 +1,4 @@
-import { ChessGame } from './chess-game'
+import ChessGame from './chess-game'
 import Chessman from './chessman'
 import ArrayHelper from './array-helper'
 import ChessUtil from './chess-util'
