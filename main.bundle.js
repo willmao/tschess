@@ -898,7 +898,7 @@ GameEvaluator.evaluate = function (searchObject, color) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__search_object__ = __webpack_require__("../../../../../src/app/chess/game/search-object.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__chess_rule__ = __webpack_require__("../../../../../src/app/chess/game/chess-rule.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__game_evaluator__ = __webpack_require__("../../../../../src/app/chess/game/game-evaluator.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__chess_move__ = __webpack_require__("../../../../../src/app/chess/game/chess-move.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__sort_helper__ = __webpack_require__("../../../../../src/app/chess/game/sort-helper.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -910,18 +910,38 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 
 
 
+var Tracer = (function () {
+    function Tracer() {
+    }
+    Tracer.prototype.start = function () {
+        this.startTime = new Date();
+    };
+    Tracer.prototype.end = function () {
+        this.endTime = new Date();
+    };
+    Tracer.prototype.toString = function () {
+        var timeUsed = this.endTime - this.startTime;
+        var seconds = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(timeUsed / 1000.0);
+        return "time used: " + seconds + "s";
+    };
+    return Tracer;
+}());
 var SearchEngine = SearchEngine_1 = (function () {
     function SearchEngine() {
     }
     return SearchEngine;
 }());
-SearchEngine.maxDepth = 5;
+SearchEngine.maxDepth = 7;
 SearchEngine.createSearchObject = function (game, color) {
     return new __WEBPACK_IMPORTED_MODULE_1__search_object__["a" /* default */](game, color);
 };
 SearchEngine.findBestMove = function (game, color) {
     var searchObj = SearchEngine_1.createSearchObject(game, color);
+    var tracer = new Tracer();
+    tracer.start();
     var alpha = SearchEngine_1.alphaBeta(searchObj, color, -1 * __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].INFINITY, __WEBPACK_IMPORTED_MODULE_3__game_evaluator__["a" /* default */].INFINITY, SearchEngine_1.maxDepth);
+    tracer.end();
+    console.log(tracer.toString());
     return searchObj.bestMove;
 };
 SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
@@ -932,6 +952,7 @@ SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
     }
     // 生成全部走法
     var moves = __WEBPACK_IMPORTED_MODULE_2__chess_rule__["a" /* default */].findAllMoves(searchObj, color, false);
+    __WEBPACK_IMPORTED_MODULE_4__sort_helper__["a" /* default */].swapSort(moves);
     for (var i = 0; i < moves.length; i++) {
         var move = moves[i];
         var killedMan = (move >>> 24);
@@ -942,11 +963,7 @@ SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
         }
         SearchEngine_1.applyMove(searchObj, color, move);
         var currentScore = searchObj.currentScore;
-        // if (depth === SearchEngine.maxDepth) {
-        //   console.log(move, chessMove.toString());
-        // }
         // TODO:判断是否导致重复步骤
-        // 判断是否被将军
         // 反转搜索颜色
         // 搜索对方最优走法
         var value = -1 * SearchEngine_1.alphaBeta(searchObj, 1 - color, -beta, -alpha, depth - 1);
@@ -959,9 +976,10 @@ SearchEngine.alphaBeta = function (searchObj, color, alpha, beta, depth) {
         if (value > alpha) {
             alpha = value;
             bestMove = move;
-            if (depth === SearchEngine_1.maxDepth) {
-                console.log("\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_4__chess_move__["a" /* default */](bestMove).toString() + ",\u5C42\u6570:" + depth + ",\u8D70\u5B8C\u8BC4\u5206:" + currentScore + ",\u5BF9\u65B9\u6700\u4F18\u8BC4\u5206:" + value + ",\u5BF9\u65B9\u6700\u4F18\u8D70\u6CD5:" + new __WEBPACK_IMPORTED_MODULE_4__chess_move__["a" /* default */](searchObj.bestMove).toString());
-            }
+            // // TODO delete log
+            // if (depth === SearchEngine.maxDepth) {
+            //   console.log(`最优走法:${new ChessMove(bestMove).toString()},层数:${depth},走完评分:${currentScore},对方最优评分:${value},对方最优走法:${new ChessMove(searchObj.bestMove).toString()}`);
+            // }
         }
     }
     searchObj.bestMove = bestMove;
@@ -1065,6 +1083,49 @@ var SearchObject = (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (SearchObject);
 //# sourceMappingURL=search-object.js.map
+
+/***/ }),
+
+/***/ "../../../../../src/app/chess/game/sort-helper.ts":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__game_evaluator__ = __webpack_require__("../../../../../src/app/chess/game/game-evaluator.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__array_helper__ = __webpack_require__("../../../../../src/app/chess/game/array-helper.ts");
+
+
+var SortHelper = (function () {
+    function SortHelper() {
+    }
+    SortHelper.swapSort = function (moves) {
+        for (var i = 0; i < moves.length; i++) {
+            var move = moves[i];
+            this.scores[i] = ((move & 0xff000000 ? __WEBPACK_IMPORTED_MODULE_0__game_evaluator__["a" /* default */].armsStaticScore[(move >>> 28) & 0x07] : 0) << 8);
+        }
+        for (var i = 0; i < moves.length; i++) {
+            for (var j = i + 1; j < moves.length; j++) {
+                if (this.scores[i] < this.scores[j]) {
+                    var t = moves[i];
+                    moves[i] = moves[j];
+                    moves[j] = t;
+                    t = this.scores[i];
+                    this.scores[i] = this.scores[j];
+                    this.scores[j] = t;
+                    // moves[i] = moves[i] ^ moves[j];
+                    // moves[j] = moves[j] ^ moves[i];
+                    // moves[i] = moves[i] ^ moves[j];
+                    // this.scores[i] = this.scores[i] ^ this.scores[j];
+                    // this.scores[j] = this.scores[j] ^ this.scores[i];
+                    // this.scores[i] = this.scores[i] ^ this.scores[j];
+                }
+            }
+        }
+    };
+    return SortHelper;
+}());
+/* harmony default export */ __webpack_exports__["a"] = (SortHelper);
+SortHelper.scores = __WEBPACK_IMPORTED_MODULE_1__array_helper__["a" /* default */].reset(new Array(1 << 10));
+//# sourceMappingURL=sort-helper.js.map
 
 /***/ }),
 
