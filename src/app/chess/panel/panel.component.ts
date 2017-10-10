@@ -29,8 +29,8 @@ export class PanelComponent implements OnInit {
   panelConf: any;
   uiConf: ChessUIConf;
   thinking: EventEmitter<any>;
-  thinkDuration:number;
-  showTimeLeft:boolean;
+  thinkDuration: number;
+  showTimeLeft: boolean;
   timeLeft: number;
   thinkTimer: any;
 
@@ -78,7 +78,7 @@ export class PanelComponent implements OnInit {
         break;
     }
   }
-  
+
   findBestMove = (chessGame: ChessGame) => {
     setTimeout(() => {
       const bestMove = SearchEngine.findBestMove(chessGame, 0);
@@ -98,7 +98,7 @@ export class PanelComponent implements OnInit {
     this.chessGame.revert();
   }
 
-  get chessmen () {
+  get chessmen() {
     return this.chessGame.chessmen;
   }
 

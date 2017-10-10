@@ -4,11 +4,33 @@ import ChessGame from './chess-game'
 import ChessRule from './chess-rule'
 import GameEvaluator from './game-evaluator'
 import ChessMove from './chess-move'
+import SortHelper from './sort-helper'
+
+class Tracer {
+  startTime: any;
+  endTime: any;
+
+
+  start() {
+    this.startTime = new Date();
+  }
+
+  end() {
+    this.endTime = new Date();
+  }
+
+
+  toString() {
+    const timeUsed = this.endTime - this.startTime;
+    const seconds = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(timeUsed / 1000.0);
+    return `time used: ${seconds}s`;
+  }
+}
 
 @Injectable()
 export default class SearchEngine {
 
-  static maxDepth = 5;
+  static maxDepth = 7;
 
   static createSearchObject = (game: ChessGame, color: number): SearchObject => {
     return new SearchObject(game, color);
@@ -16,7 +38,11 @@ export default class SearchEngine {
 
   static findBestMove = (game: ChessGame, color: number) => {
     const searchObj = SearchEngine.createSearchObject(game, color);
+    const tracer = new Tracer();
+    tracer.start();
     let alpha = SearchEngine.alphaBeta(searchObj, color, -1 * GameEvaluator.INFINITY, GameEvaluator.INFINITY, SearchEngine.maxDepth);
+    tracer.end();
+    console.log(tracer.toString());
     return searchObj.bestMove;
   }
 
@@ -29,6 +55,7 @@ export default class SearchEngine {
 
     // 生成全部走法
     const moves = ChessRule.findAllMoves(searchObj, color, false);
+    SortHelper.swapSort(moves);
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i];
       const killedMan = (move >>> 24);
@@ -40,12 +67,8 @@ export default class SearchEngine {
 
       SearchEngine.applyMove(searchObj, color, move);
       const currentScore = searchObj.currentScore;
-      // if (depth === SearchEngine.maxDepth) {
-      //   console.log(move, chessMove.toString());
-      // }
       // TODO:判断是否导致重复步骤
 
-      // 判断是否被将军
       // 反转搜索颜色
       // 搜索对方最优走法
       const value = -1 * SearchEngine.alphaBeta(searchObj, 1 - color, -beta, -alpha, depth - 1);
@@ -60,14 +83,14 @@ export default class SearchEngine {
       if (value > alpha) {
         alpha = value;
         bestMove = move;
-        if (depth === SearchEngine.maxDepth) {
-          console.log(`最优走法:${new ChessMove(bestMove).toString()},层数:${depth},走完评分:${currentScore},对方最优评分:${value},对方最优走法:${new ChessMove(searchObj.bestMove).toString()}`);
-        }
+        // // TODO delete log
+        // if (depth === SearchEngine.maxDepth) {
+        //   console.log(`最优走法:${new ChessMove(bestMove).toString()},层数:${depth},走完评分:${currentScore},对方最优评分:${value},对方最优走法:${new ChessMove(searchObj.bestMove).toString()}`);
+        // }
       }
     }
 
     searchObj.bestMove = bestMove;
-
     return alpha;
   }
 
