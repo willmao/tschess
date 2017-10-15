@@ -1137,7 +1137,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".base-line {\n  stroke: #8d4919;\n  stroke-width: 1px;\n}\n\n.chessman {\n  cursor: pointer;\n  background-color: transparent;\n}\n\n.chessman > circle {\n  fill: #e7c292;\n}\n\n.chessman.unselectabled {\n  -moz-user-select: -moz-none;\n  -webkit-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.chessman text {\n  font-size: 12px;\n  stroke-width: 1px;\n  font-family: cursive;\n}\n\n.chessman.black text {\n  fill: black;\n}\n\n.chessman.red text {\n  fill: red;\n}\n\n.chessman circle.checked {\n  stroke-width: 1px;\n}\n\n.chessman.black circle.checked {\n  stroke: black;\n}\n\n.chessman.red circle.checked {\n  stroke: red;\n  stroke-width: 1px;\n}\n\n.game-info-wrapper {\n  padding-left: 50px;\n}\n\n.time-left {\n  padding-left: 10px;\n}\n\n.operation-wrapper {\n  margin-top: 10px;\n}\n\n.operation-wrapper > .btn {\n  border:none;\n  color: white;\n  background-color: #37c3aa;\n  padding: 5px 10px;\n  border-radius: 3px;\n  cursor: pointer;\n  opacity: 0.8;\n  outline: none;\n}\n\n.operation-wrapper > .btn:hover {\n  opacity: 1;\n}\n", ""]);
+exports.push([module.i, ".base-line {\n  stroke: #8d4919;\n  stroke-width: 1px;\n}\n\n.chessman {\n  cursor: pointer;\n  background-color: transparent;\n}\n\n.chessman > circle {\n  fill: #e7c292;\n}\n\n.chessman.unselectabled {\n  -moz-user-select: -moz-none;\n  -webkit-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.chessman text {\n  font-size: 12px;\n  stroke-width: 1px;\n  font-family: cursive;\n}\n\n.chessman.black text {\n  fill: black;\n}\n\n.chessman.red text {\n  fill: red;\n}\n\n.chessman circle.checked {\n  stroke-width: 1px;\n}\n\n.chessman.black circle.checked {\n  stroke: black;\n}\n\n.chessman.red circle.checked {\n  stroke: red;\n  stroke-width: 1px;\n}\n\n.game-info-wrapper {\n  padding-left: 50px;\n  margin-top: 50px;\n}\n\n.time-left {\n  padding-left: 10px;\n}\n\n.operation-wrapper {\n  margin-top: 10px;\n}\n\n.operation-wrapper > .btn {\n  border:none;\n  color: white;\n  background-color: #37c3aa;\n  padding: 5px 10px;\n  border-radius: 3px;\n  cursor: pointer;\n  opacity: 0.8;\n  outline: none;\n}\n\n.operation-wrapper > .btn:hover {\n  opacity: 1;\n}\n\n.panel-wrapper {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n}", ""]);
 
 // exports
 
@@ -1150,7 +1150,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/chess/panel/panel.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\" [attr.width]=\"panelConf.width\"\n  [attr.height]=\"panelConf.height\" [attr.viewBox]=\"panelConf.viewBox\" (click)=\"clickPanel($event)\">\n  <filter id=\"dropShadow\">\n    <feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"0.6\" />\n    <feOffset dx=\"0.5\" dy=\"0.5\" />\n    <feMerge>\n      <feMergeNode />\n      <feMergeNode in=\"SourceGraphic\" />\n    </feMerge>\n  </filter>\n  <g class=\"panel-base\">\n    <line class=\"base-line\" [attr.x1]=\"line.x1\" [attr.y1]=\"line.y1\" [attr.x2]=\"line.x2\" [attr.y2]=\"line.y2\" *ngFor=\"let line of baseLines\"></line>\n  </g>\n  <svg class=\"chessman unselectabled\" [class.red]=\"chessman.color===1\" [class.black]=\"chessman.color===0\" *ngFor=\"let chessman of chessmen\">\n    <circle filter=\"url(#dropShadow)\" [class.checked]=\"chessman.checked\" [attr.cx]=\"chessman.px\" [attr.cy]=\"chessman.py\" [attr.r]=\"uiConf.radius\"></circle>\n    <text [attr.x]=\"chessman.px\" [attr.y]=\"chessman.py\" dx=\"-6\" dy=\"4\">{{chessman.name}}</text>\n  </svg>\n</svg>\n<section class=\"game-info-wrapper\">\n  <div class=\"status-wrapper\">\n    <span>当前状态：{{chessGame.gameStatus | status}}</span>\n    <span class=\"time-left\" *ngIf=\"showTimeLeft\">剩余思考时间：{{timeLeft}}</span>\n  </div>\n  <div class=\"operation-wrapper\">\n    <button class=\"btn reset\" (click)=\"resetGame()\">重新开始</button>\n    <button class=\"btn revert\" (click)=\"revert()\">悔棋</button>\n  </div>\n</section>"
+module.exports = "<section class=\"panel-wrapper\">\n  <svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\" [attr.width]=\"panelConf.width\"\n    [attr.height]=\"panelConf.height\" [attr.viewBox]=\"panelConf.viewBox\" (click)=\"clickPanel($event)\">\n    <filter id=\"dropShadow\">\n      <feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"0.6\" />\n      <feOffset dx=\"0.5\" dy=\"0.5\" />\n      <feMerge>\n        <feMergeNode />\n        <feMergeNode in=\"SourceGraphic\" />\n      </feMerge>\n    </filter>\n    <g class=\"panel-base\">\n      <line class=\"base-line\" [attr.x1]=\"line.x1\" [attr.y1]=\"line.y1\" [attr.x2]=\"line.x2\" [attr.y2]=\"line.y2\" *ngFor=\"let line of baseLines\"></line>\n    </g>\n    <svg class=\"chessman unselectabled\" [class.red]=\"chessman.color===1\" [class.black]=\"chessman.color===0\" *ngFor=\"let chessman of chessmen\">\n      <circle filter=\"url(#dropShadow)\" [class.checked]=\"chessman.checked\" [attr.cx]=\"chessman.px\" [attr.cy]=\"chessman.py\" [attr.r]=\"uiConf.radius\"></circle>\n      <text [attr.x]=\"chessman.px\" [attr.y]=\"chessman.py\" dx=\"-6\" dy=\"4\">{{chessman.name}}</text>\n    </svg>\n  </svg>\n  <section class=\"game-info-wrapper\">\n    <div class=\"status-wrapper\">\n      <span>当前状态：{{chessGame.gameStatus | status}}</span>\n      <!-- <span class=\"time-left\" *ngIf=\"showTimeLeft\">剩余思考时间：{{timeLeft}}</span> -->\n    </div>\n    <div class=\"operation-wrapper\">\n      <button class=\"btn reset\" (click)=\"resetGame()\">重新开始</button>\n      <button class=\"btn revert\" (click)=\"revert()\">悔棋</button>\n    </div>\n  </section>\n</section>\n"
 
 /***/ }),
 
@@ -1191,7 +1191,6 @@ var PanelComponent = (function () {
                 if (bestMove) {
                     chessGame.applyMove(bestMove);
                     chessGame.gameStatus = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Start;
-                    _this.showTimeLeft = false;
                 }
             }, 5);
         };
@@ -1205,11 +1204,8 @@ var PanelComponent = (function () {
         this.chessGame = chessGame;
         this.thinking = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["w" /* EventEmitter */](false);
         this.thinking.subscribe(this.findBestMove);
-        this.thinkDuration = 10;
-        this.showTimeLeft = false;
     }
     PanelComponent.prototype.clickPanel = function (event) {
-        var _this = this;
         var originalPoint = this.uiService.getOriginalPoint(this.panelConf.zoomTimes, event.offsetX, event.offsetY);
         this.uiService.isInsidePanel(originalPoint.x, originalPoint.y);
         if (!this.uiService.isInsidePanel(originalPoint.x, originalPoint.y) ||
@@ -1239,15 +1235,6 @@ var PanelComponent = (function () {
                         this.chessGame.applyMove(move);
                         this.thinking.emit(this.chessGame);
                         this.chessGame.gameStatus = __WEBPACK_IMPORTED_MODULE_3__game_chess_game__["a" /* GameStatus */].Thinking;
-                        this.showTimeLeft = true;
-                        this.timeLeft = this.thinkDuration;
-                        this.thinkTimer = setInterval(function () {
-                            if (!_this.timeLeft) {
-                                _this.showTimeLeft = false;
-                                return clearInterval(_this.thinkTimer);
-                            }
-                            _this.timeLeft--;
-                        }, 3000);
                     }
                 }
                 break;
