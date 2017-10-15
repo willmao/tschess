@@ -21,18 +21,12 @@ export class PanelComponent implements OnInit {
 
     this.thinking = new EventEmitter<any>(false);
     this.thinking.subscribe(this.findBestMove);
-    this.thinkDuration = 10;
-    this.showTimeLeft = false;
   }
   baseLines: SVGLine[];
   chessGame: ChessGame;
   panelConf: any;
   uiConf: ChessUIConf;
   thinking: EventEmitter<any>;
-  thinkDuration: number;
-  showTimeLeft: boolean;
-  timeLeft: number;
-  thinkTimer: any;
 
   clickPanel(event) {
     const originalPoint = this.uiService.getOriginalPoint(this.panelConf.zoomTimes, event.offsetX, event.offsetY);
@@ -64,15 +58,6 @@ export class PanelComponent implements OnInit {
             this.chessGame.applyMove(move);
             this.thinking.emit(this.chessGame);
             this.chessGame.gameStatus = GameStatus.Thinking;
-            this.showTimeLeft = true;
-            this.timeLeft = this.thinkDuration;
-            this.thinkTimer = setInterval(() => {
-              if (!this.timeLeft) {
-                this.showTimeLeft = false;
-                return clearInterval(this.thinkTimer);
-              }
-              this.timeLeft--;
-            }, 3000);
           }
         }
         break;
@@ -85,7 +70,6 @@ export class PanelComponent implements OnInit {
       if (bestMove) {
         chessGame.applyMove(bestMove);
         chessGame.gameStatus = GameStatus.Start;
-        this.showTimeLeft = false;
       }
     }, 5);
   }

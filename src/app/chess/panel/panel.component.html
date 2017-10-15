@@ -1,28 +1,30 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" [attr.width]="panelConf.width"
-  [attr.height]="panelConf.height" [attr.viewBox]="panelConf.viewBox" (click)="clickPanel($event)">
-  <filter id="dropShadow">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" />
-    <feOffset dx="0.5" dy="0.5" />
-    <feMerge>
-      <feMergeNode />
-      <feMergeNode in="SourceGraphic" />
-    </feMerge>
-  </filter>
-  <g class="panel-base">
-    <line class="base-line" [attr.x1]="line.x1" [attr.y1]="line.y1" [attr.x2]="line.x2" [attr.y2]="line.y2" *ngFor="let line of baseLines"></line>
-  </g>
-  <svg class="chessman unselectabled" [class.red]="chessman.color===1" [class.black]="chessman.color===0" *ngFor="let chessman of chessmen">
-    <circle filter="url(#dropShadow)" [class.checked]="chessman.checked" [attr.cx]="chessman.px" [attr.cy]="chessman.py" [attr.r]="uiConf.radius"></circle>
-    <text [attr.x]="chessman.px" [attr.y]="chessman.py" dx="-6" dy="4">{{chessman.name}}</text>
+<section class="panel-wrapper">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" [attr.width]="panelConf.width"
+    [attr.height]="panelConf.height" [attr.viewBox]="panelConf.viewBox" (click)="clickPanel($event)">
+    <filter id="dropShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" />
+      <feOffset dx="0.5" dy="0.5" />
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <g class="panel-base">
+      <line class="base-line" [attr.x1]="line.x1" [attr.y1]="line.y1" [attr.x2]="line.x2" [attr.y2]="line.y2" *ngFor="let line of baseLines"></line>
+    </g>
+    <svg class="chessman unselectabled" [class.red]="chessman.color===1" [class.black]="chessman.color===0" *ngFor="let chessman of chessmen">
+      <circle filter="url(#dropShadow)" [class.checked]="chessman.checked" [attr.cx]="chessman.px" [attr.cy]="chessman.py" [attr.r]="uiConf.radius"></circle>
+      <text [attr.x]="chessman.px" [attr.y]="chessman.py" dx="-6" dy="4">{{chessman.name}}</text>
+    </svg>
   </svg>
-</svg>
-<section class="game-info-wrapper">
-  <div class="status-wrapper">
-    <span>当前状态：{{chessGame.gameStatus | status}}</span>
-    <span class="time-left" *ngIf="showTimeLeft">剩余思考时间：{{timeLeft}}</span>
-  </div>
-  <div class="operation-wrapper">
-    <button class="btn reset" (click)="resetGame()">重新开始</button>
-    <button class="btn revert" (click)="revert()">悔棋</button>
-  </div>
+  <section class="game-info-wrapper">
+    <div class="status-wrapper">
+      <span>当前状态：{{chessGame.gameStatus | status}}</span>
+      <!-- <span class="time-left" *ngIf="showTimeLeft">剩余思考时间：{{timeLeft}}</span> -->
+    </div>
+    <div class="operation-wrapper">
+      <button class="btn reset" (click)="resetGame()">重新开始</button>
+      <button class="btn revert" (click)="revert()">悔棋</button>
+    </div>
+  </section>
 </section>

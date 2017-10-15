@@ -49,6 +49,7 @@
 
 .game-info-wrapper {
   padding-left: 50px;
+  margin-top: 50px;
 }
 
 .time-left {
@@ -72,4 +73,8 @@
 
 .operation-wrapper > .btn:hover {
   opacity: 1;
+}
+
+.panel-wrapper {
+  display: flex;
 }
